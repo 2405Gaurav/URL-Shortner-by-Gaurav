@@ -1,36 +1,45 @@
 const URL = require('../models/url');
 const shortid = require('shortid');
 
-// Function to handle short URL generation
 async function handlegeneratenewurl(req, res) {
-    const body = req.body;
+    try {
+        const { url } = req.body;
+        if (!url) {
+            return res.status(400).json({ error: 'url is not provided' });
+        }
 
-    if (!body.url) {
-        return res.status(400).json({ error: 'url is not provided' });
+        const generatedShortId = shortid.generate();
+
+        const newUrl = await URL.create({
+            shortid: generatedShortId,
+            redirecturl: url,
+            visithistory: []
+        });
+
+        return res.status(201).json({ id: generatedShortId });
+    } catch (err) {
+        console.error('Error creating short URL:', err);
+        return res.status(500).json({ error: 'Failed to create short URL' });
     }
-
-    const generatedShortId = shortid.generate(); // correct use of shortid
-
-    await URL.create({
-        shortid: generatedShortId,
-        redirecturl: body.url,
-        visithistory: []
-    });
-
-    return res.json({ id: generatedShortId });
 }
 
-  async function handlereqanalytics(req,res){
-    const shortid=req.params.shortid
-    const result=await URL.findOne({shortid})
-    return res.json({
-        totalclicks:result.visithistory.length,
-        analytics: result.visithistory
-    })
+async function handlereqanalytics(req, res) {
+    try {
+        const { shortid } = req.params;
+        const result = await URL.findOne({ shortid });
+        if (!result) {
+            return res.status(404).json({ error: 'Short URL not found' });
+        }
+        return res.json({
+            totalclicks: result.visithistory.length,
+            analytics: result.visithistory
+        });
+    } catch (err) {
+        console.error('Error fetching analytics:', err);
+        return res.status(500).json({ error: 'Failed to fetch analytics' });
+    }
+}
 
-  }
-
-// Correct export syntax
 module.exports = {
     handlegeneratenewurl,
     handlereqanalytics,

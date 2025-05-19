@@ -34,6 +34,13 @@ app.get('/signup', (req, res, next) => {
         next(err);
     }
 });
+app.get('/login', (req, res, next) => {
+    try {
+        res.render('login');
+    } catch (err) {
+        next(err);
+    }
+});
 
 
 
