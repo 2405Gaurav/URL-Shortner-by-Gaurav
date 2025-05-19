@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Page</title>
+    <style>
+    body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* full height of the viewport */
+    margin: 0;
+    background-color: #f0f0f0; /* optional background */
+}
+
+.login {
+    display: flex;
+    flex-direction: column;
+    background-color: aqua;
+    width: 300px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1); /* optional for better look */
+}
+
+        .entry {
+            background-color: azure;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+        }
+        .submit {
+            height: 30px;
+            background-color: whitesmoke;
+            cursor: pointer;
+            border: none;
+        }
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <form class="login" action="/user" method="POST">
+        <% if (typeof error !== 'undefined') { %>
+            <div class="error"><%= error %></div>
+        <% } %>
+        <input class="entry" type="text" name="name" placeholder="Enter Name" required 
+               value="<%= typeof formData !== 'undefined' ? formData.name : '' %>">
+        <input class="entry" type="email" name="emailid" placeholder="Enter Email ID" required
+               value="<%= typeof formData !== 'undefined' ? formData.emailid : '' %>">
+        <input class="entry" type="password" name="password" placeholder="Enter Password" required>
+        <button class="submit" type="submit">SUBMIT</button>
+    </form>
+</body>
+</html>

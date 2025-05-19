@@ -20,7 +20,18 @@ async function handlegeneratenewurl(req, res) {
     return res.json({ id: generatedShortId });
 }
 
+  async function handlereqanalytics(req,res){
+    const shortid=req.params.shortid
+    const result=await URL.findOne({shortid})
+    return res.json({
+        totalclicks:result.visithistory.length,
+        analytics: result.visithistory
+    })
+
+  }
+
 // Correct export syntax
 module.exports = {
     handlegeneratenewurl,
+    handlereqanalytics,
 };

@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { handlegeneratenewurl } = require('../controller/url');
+const { handlegeneratenewurl, handlereqanalytics } = require('../controller/url');
 
-// Corrected route path from './' to '/'
+// POST route to generate short URL
 router.post('/', handlegeneratenewurl);
 
-// Correct export
+// GET route for analytics
+router.get('/analytics/:shortid', handlereqanalytics);
+
 module.exports = router;

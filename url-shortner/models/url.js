@@ -1,27 +1,22 @@
-const mongoose = require('mongoose');
+const mongoose=require('mongoose')
+const { applyTimestamps } = require('./url')
 
-const urlschema = new mongoose.Schema({
-    shortid: {
-        type: String,
-        required: true,
-        unique: true
+const userschema=mongoose.Schema({
+    name:{
+        type:String,
+        required:true
     },
-    redirecturl: {
-        type: String,
-        required: true
+    emailid:{
+        type:String,
+        unique:true,
+        required:true,
+
     },
-    visithistory: [
-        {
-            timestamp: {
-                type: Number
-            }
-        }
-    ]
-}, {
-    timestamps: true
-});
+    password:{
+        type : String,
+        required:true,
+    }
+},{timestamps:true})
 
-const URL = mongoose.model('url', urlschema);
-
-// ✅ Correct this line:
-module.exports = URL;
+const users=mongoose.model('users',userschema)
+module.exports=users

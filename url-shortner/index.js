@@ -1,13 +1,19 @@
 const express = require('express');
 const urlRouter = require('./routes/url');
+const userroute=require('./routes/user')
 const { connecttomongodb } = require('./connect');
 const URL = require('./models/url');
 
 const app = express();
 const port = 3000;
 
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
+
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 // Enable CORS
 app.use((req, res, next) => {
@@ -19,6 +25,28 @@ app.use((req, res, next) => {
 
 // Routes
 app.use('/url', urlRouter);
+app.use('/user', userroute);
+
+app.get('/signup', (req, res, next) => {
+    try {
+        res.render('signup');
+    } catch (err) {
+        next(err);
+    }
+});
+
+
+
+
+// Home page route to display URL shortener interface
+app.get('/', async (req, res, next) => {
+    try {
+        const urls = await URL.find({}).lean();
+        res.render('user', { urls });
+    } catch (err) {
+        next(err);
+    }
+});
 
 // Redirect route with visit tracking
 app.get('/:shortid', async (req, res, next) => {
