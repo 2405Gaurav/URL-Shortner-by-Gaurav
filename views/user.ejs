@@ -1,105 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>URL Shortener</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .container { max-width: 800px; margin-top: 2rem; }
-        .url-form { margin-bottom: 2rem; }
-        .short-url { word-break: break-all; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="description" content="Simple and fast URL shortener built with Node.js"/>
+  <title>URL Shortener</title>
+  <link rel="icon" href="https://img.icons8.com/fluency/48/link.png" type="image/png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    .container { max-width: 850px; margin-top: 2.5rem; }
+    .url-form { margin-bottom: 2rem; }
+    .short-url { word-break: break-all; }
+    .btn-spinner { display: none; margin-left: 0.5rem; }
+    .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 1050; }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="mb-4">URL Shortener</h1>
-        
-        <!-- URL Input Form -->
-        <div class="url-form">
-            <form id="urlForm" class="row g-3">
-                <div class="col-md-8">
-                    <input type="url" class="form-control" id="longUrl" placeholder="Enter your URL here" required>
-                </div>
-                <div class="col-md-4">
-                    <button type="submit" class="btn btn-primary w-100">Generate Short URL</button>
-                </div>
-            </form>
-        </div>
+  <div class="container">
+    <h1 class="mb-4 text-center">🔗 URL Shortener</h1>
 
-        <!-- Display Shortened URLs -->
-        <h2 class="mb-3">Your Shortened URLs</h2>
-        <div class="table-responsive">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Short URL</th>
-                        <th>Original URL</th>
-                        <th>Total Clicks</th>
-                        <th>Created At</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% urls.forEach(url => { %>
-                        <tr>
-                            <td class="short-url">
-                                <a href="/<%= url.shortid %>" target="_blank">
-                                    <%= `http://localhost:3000/${url.shortid}` %>
-                                </a>
-                            </td>
-                            <td class="short-url"><%= url.redirecturl %></td>
-                            <td><%= url.visithistory ? url.visithistory.length : 0 %></td>
-                            <td><%= new Date(url.createdAt).toLocaleString() %></td>
-                            <td>
-                                <button class="btn btn-sm btn-info" onclick="showAnalytics('<%= url.shortid %>')">
-                                    Analytics
-                                </button>
-                            </td>
-                        </tr>
-                    <% }); %>
-                </tbody>
-            </table>
+    <!-- URL Input Form -->
+    <div class="url-form">
+      <form id="urlForm" class="row g-3">
+        <div class="col-md-8">
+          <input type="url" class="form-control" id="longUrl" placeholder="Enter your URL here" required />
         </div>
+        <div class="col-md-4">
+          <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+            Generate Short URL
+            <span class="spinner-border spinner-border-sm btn-spinner" id="spinner" role="status" aria-hidden="true"></span>
+          </button>
+        </div>
+      </form>
     </div>
 
-    <script>
-        // Handle form submission
-        document.getElementById('urlForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const longUrl = document.getElementById('longUrl').value;
-            
-            try {
-                const response = await fetch('/url', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ url: longUrl })
-                });
-                
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert('Error creating short URL');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error creating short URL');
-            }
+    <!-- Display Shortened URLs -->
+    <h2 class="mb-3">Your Shortened URLs</h2>
+    <div class="table-responsive">
+      <table class="table table-striped table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>Short URL</th>
+            <th>Original URL</th>
+            <th>Clicks</th>
+            <th>Created At</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% urls.forEach(url => { %>
+            <tr>
+              <td class="short-url">
+                <a href="/<%= url.shortid %>" target="_blank">
+                  <%= `http://localhost:3000/${url.shortid}` %>
+                </a>
+              </td>
+              <td class="short-url"><%= url.redirecturl %></td>
+              <td><%= url.visithistory ? url.visithistory.length : 0 %></td>
+              <td><%= new Date(url.createdAt).toLocaleString() %></td>
+              <td>
+                <button class="btn btn-sm btn-outline-info" onclick="showAnalytics('<%= url.shortid %>')">
+                  View Analytics
+                </button>
+              </td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const form = document.getElementById('urlForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const spinner = document.getElementById('spinner');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const longUrl = document.getElementById('longUrl').value;
+
+      submitBtn.disabled = true;
+      spinner.style.display = 'inline-block';
+
+      try {
+        const response = await fetch('/url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: longUrl }),
         });
 
-        // Show analytics
-        async function showAnalytics(shortid) {
-            try {
-                const response = await fetch(`/analytics/${shortid}`);
-                const data = await response.json();
-                alert(`Total Clicks: ${data.totalClicks}`);
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error fetching analytics');
-            }
+        if (response.ok) {
+          showToast('✅ Short URL created successfully!', 'success');
+          setTimeout(() => location.reload(), 1000);
+        } else {
+          showToast('❌ Failed to shorten URL', 'danger');
         }
-    </script>
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('❌ Server error occurred', 'danger');
+      } finally {
+        submitBtn.disabled = false;
+        spinner.style.display = 'none';
+      }
+    });
+
+    async function showAnalytics(shortid) {
+      try {
+        const response = await fetch(`/analytics/${shortid}`);
+        const data = await response.json();
+        showToast(`🔍 Total Clicks: ${data.totalClicks}`, 'info');
+      } catch (error) {
+        console.error('Error:', error);
+        showToast('❌ Could not fetch analytics', 'danger');
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const toastContainer = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast align-items-center text-bg-${type} border-0 show mb-2`;
+      toast.setAttribute('role', 'alert');
+      toast.innerHTML = `
+        <div class="d-flex">
+          <div class="toast-body">${message}</div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('.toast').remove()"></button>
+        </div>
+      `;
+      toastContainer.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+    }
+  </script>
 </body>
-</html> 
+</html>
