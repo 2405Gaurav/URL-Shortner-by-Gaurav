@@ -1,22 +1,21 @@
-const mongoose=require('mongoose')
-const { applyTimestamps } = require('./url')
+const mongoose = require('mongoose');
 
-const userschema=mongoose.Schema({
-    name:{
-        type:String,
-        required:true
+const userschema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
     },
-    emailid:{
-        type:String,
-        unique:true,
-        required:true,
-
+    emailid: {
+        type: String,
+        unique: true,
+        required: true
     },
-    password:{
-        type : String,
-        required:true,
+    password: {
+        type: String,
+        required: true
     }
-},{timestamps:true})
+}, { timestamps: true });
 
-const users=mongoose.model('users',userschema)
-module.exports=users
+const Users = mongoose.models.users || mongoose.model('users', userschema); // ✅ safe check
+
+module.exports = Users;
